@@ -1,12 +1,10 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
-const { log } = require('console');
-const chartRendered1 = false;
-const chartRendered2 = false;
+const chartRendered = false;
 const setChartPath = path.join(__dirname, 'utils', 'setChart.js');
 const setChartFunction = fs.readFileSync(setChartPath, 'utf8');
-let rootUrl ='http://some-domain';
+
 let option = {
     xAxis: {
       type: 'category',
@@ -38,8 +36,7 @@ let option = {
       }
     ]
   };
-
-  const colors = ['#5470C6', '#EE6666'];
+  
   let option3 = {
     angleAxis: {
       type: 'category',
@@ -85,19 +82,17 @@ let option = {
     }
   };
 
-async function createPdfWithChart() {
+const combinedData = option3.series.flatMap((seriesItem) => {
+  const name = seriesItem.name;
+  const data = seriesItem.data;
+  return data.map((value) => `${value}-${name}`);
+});
 
+async function createPdfWithChart() {
     const browser = await puppeteer.launch({
         headless: "new" 
     });
     const page = await browser.newPage();
-
-    const combinedData = option3.series.flatMap((seriesItem) => {
-        const name = seriesItem.name;
-        const data = seriesItem.data;
-    
-        return data.map((value) => `${value}-${name}`);
-    });
       await page.setContent(`     
           <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>      
               <div id="chart" style="width: 600px;height:400px;"></div>
@@ -114,9 +109,7 @@ async function createPdfWithChart() {
     await page.evaluate(`setChart("chart3", "http://some-domain", "fill", ${JSON.stringify(option3)}, ${JSON.stringify(combinedData)});`);
     await page.waitForFunction('window.chartRendered === true');
     await page.pdf({ path: 'chart.pdf', width: '1000px', height: '1600px' });
-
     await browser.close();
-
 }
 
 createPdfWithChart();

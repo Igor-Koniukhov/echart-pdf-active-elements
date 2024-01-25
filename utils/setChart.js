@@ -1,10 +1,7 @@
 
-
-
-
 const setChart = (containerId,rootUrl, attr, option, pathData)=>{
     const chartNode = document.getElementById(containerId);
-  var myChart = echarts.init(chartNode, null, {
+  const myChart = echarts.init(chartNode, null, {
     renderer: 'svg'
   });
   
